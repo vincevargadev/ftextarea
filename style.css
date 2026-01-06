@@ -1,0 +1,225 @@
+/* ftextarea - A simple full-screen textarea */
+
+:root {
+    /* Dark theme (default) */
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent: #58a6ff;
+    --accent-hover: #79b8ff;
+    --border: #30363d;
+    --placeholder: #484f58;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Consolas, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f6f8fa;
+        --bg-tertiary: #eaeef2;
+        --text-primary: #1f2328;
+        --text-secondary: #656d76;
+        --text-muted: #8b949e;
+        --accent: #0969da;
+        --accent-hover: #0550ae;
+        --border: #d0d7de;
+        --placeholder: #8b949e;
+    }
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main textarea area */
+main {
+    flex: 1;
+    display: flex;
+    padding: 1rem;
+    padding-bottom: 0;
+}
+
+#editor {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 0.5rem;
+}
+
+#editor::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+}
+
+/* Footer */
+footer {
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+#info-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+#info-btn:hover,
+#info-btn:focus {
+    color: var(--accent);
+    background: var(--bg-secondary);
+    outline: none;
+}
+
+/* Modal (native dialog element) */
+dialog {
+    position: fixed;
+    inset: 0;
+    width: min(90vw, 480px);
+    max-height: 85vh;
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+dialog article {
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: 85vh;
+}
+
+dialog h1 {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+}
+
+dialog h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+dialog p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+dialog ul {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+dialog li {
+    margin-bottom: 0.25rem;
+}
+
+dialog .note {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+dialog .links {
+    margin-top: 0.75rem;
+}
+
+dialog .links a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+dialog .links a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+dialog .separator {
+    color: var(--text-muted);
+    margin: 0 0.5rem;
+}
+
+dialog #close-modal {
+    display: block;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+dialog #close-modal:hover,
+dialog #close-modal:focus {
+    background: var(--accent-hover);
+    outline: none;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+

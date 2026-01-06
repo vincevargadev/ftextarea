@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ftextarea</title>
+    <meta name="description" content="A simple full-screen textarea for quick notes. No login, no sync, just text.">
+    <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="ftextarea">
+    <meta property="og:description" content="A simple full-screen textarea for quick notes. No login, no sync, just text.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ftextarea.vincevarga.dev">
+    
+    <!-- Favicons -->
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <textarea id="editor" placeholder="Start typing..." autofocus spellcheck="false"></textarea>
+    </main>
+    
+    <footer>
+        <button id="info-btn" type="button">ftextarea</button>
+    </footer>
+    
+    <dialog id="info-modal">
+        <article>
+            <h1>ftextarea</h1>
+            <p>
+                A simple, distraction-free textarea for quick notes and temporary text storage.
+            </p>
+            
+            <h2>Why?</h2>
+            <p>
+                Sometimes you just need a place to paste a link or jot down a thought. 
+                Most apps require login, sync to the cloud, or format your text automatically. 
+                <strong>ftextarea</strong> does none of that — it's just a textarea.
+            </p>
+            
+            <h2>How it works</h2>
+            <ul>
+                <li>Your text is saved automatically to your browser's localStorage</li>
+                <li>Works across tabs — switch tabs and your text stays in sync</li>
+                <li>Works offline after the first visit</li>
+                <li>No account needed, no data leaves your browser</li>
+            </ul>
+            
+            <p class="note">
+                <em>Note:</em> Browsers may clear localStorage periodically. 
+                This is designed for temporary, throwaway text — not long-term storage.
+            </p>
+            
+            <h2>Open Source</h2>
+            <p>
+                This project is MIT licensed and open source. 
+                Built with vanilla HTML, CSS, and Rust compiled to WebAssembly.
+            </p>
+            <p class="links">
+                <a href="https://github.com/vincevargadev/ftextarea" target="_blank" rel="noopener">GitHub Repository</a>
+                <span class="separator">·</span>
+                <a href="https://vincevarga.dev" target="_blank" rel="noopener">vincevarga.dev</a>
+            </p>
+            
+            <button id="close-modal" type="button" autofocus>Close</button>
+        </article>
+    </dialog>
+    
+    <script type="module" src="script.js"></script>
+</body>
+</html>
+

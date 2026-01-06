@@ -1,0 +1,21 @@
+# Rust build artifacts
+/target/
+
+# Generated WASM package (can be rebuilt)
+/pkg/
+
+# Cargo lock (optional for libraries, but we include it for reproducibility)
+# Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Node (if using npm for any tooling)
+node_modules/
