@@ -1,21 +1,8 @@
+# Caddy configuration snippet for ftextarea.vincevarga.dev
+# This file is deployed to /etc/caddy/conf.d/ftextarea.vincevarga.dev.caddy
+# The main Caddyfile imports all snippets: import /etc/caddy/conf.d/*.caddy
+
 ftextarea.vincevarga.dev {
     root * /var/www/ftextarea.vincevarga.dev
-    encode gzip
     file_server
-
-    # Proper MIME types for WebAssembly
-    @wasm path *.wasm
-    header @wasm Content-Type application/wasm
-
-    # Cache static assets
-    @static path *.css *.js *.wasm *.svg *.png *.ico
-    header @static Cache-Control "public, max-age=31536000, immutable"
-
-    # Service worker should not be cached
-    @sw path /sw.js
-    header @sw Cache-Control "no-cache, no-store, must-revalidate"
-
-    # SPA fallback - serve index.html for all routes
-    try_files {path} /index.html
 }
-
