@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use web_sys::{
-    console, Document, Element, HtmlDialogElement, HtmlTextAreaElement, Storage, Window,
+    console, Document, Element, HtmlDialogElement, HtmlTextAreaElement, Window,
 };
 
 // ============================================================================
@@ -25,32 +25,51 @@ const STORAGE_KEY: &str = "ftextarea_content";
 const DEBOUNCE_MS: i32 = 250;
 
 // ============================================================================
-// Storage Operations
+// Storage Trait & Implementation
 // ============================================================================
 
-/// Retrieves the localStorage object from the window.
+/// Trait for text storage operations.
 ///
-/// Returns `None` if localStorage is not available (e.g., in private browsing mode).
-fn get_storage() -> Option<Storage> {
-    let window = web_sys::window()?;
-    window.local_storage().ok().flatten()
+/// This abstraction allows for different storage backends and makes
+/// the code testable by enabling mock implementations.
+pub trait TextStorage {
+    /// Loads the stored content, returning an empty string if none exists.
+    fn load(&self) -> String;
+
+    /// Saves content to storage.
+    fn save(&self, content: &str);
 }
 
-/// Loads the saved content from localStorage.
+/// Browser localStorage implementation of TextStorage.
 ///
-/// Returns an empty string if no content is saved or if localStorage is unavailable.
-pub fn load_content() -> String {
-    get_storage()
-        .and_then(|storage| storage.get_item(STORAGE_KEY).ok().flatten())
-        .unwrap_or_default()
+/// Wraps the Web Storage API with a cleaner, more idiomatic Rust interface.
+pub struct LocalStorage {
+    storage: web_sys::Storage,
+    key: &'static str,
 }
 
-/// Saves the given content to localStorage.
-///
-/// Silently fails if localStorage is unavailable.
-pub fn save_content(content: &str) {
-    if let Some(storage) = get_storage() {
-        let _ = storage.set_item(STORAGE_KEY, content);
+impl LocalStorage {
+    /// Creates a new LocalStorage instance for the given key.
+    ///
+    /// Returns `None` if localStorage is unavailable (e.g., private browsing mode).
+    pub fn new(key: &'static str) -> Option<Self> {
+        let window = web_sys::window()?;
+        let storage = window.local_storage().ok().flatten()?;
+        Some(Self { storage, key })
+    }
+}
+
+impl TextStorage for LocalStorage {
+    fn load(&self) -> String {
+        self.storage
+            .get_item(self.key)
+            .ok()
+            .flatten()
+            .unwrap_or_default()
+    }
+
+    fn save(&self, content: &str) {
+        let _ = self.storage.set_item(self.key, content);
     }
 }
 
@@ -163,6 +182,11 @@ pub fn init() {
     // Set up panic hook for better error messages in the console
     console_error_panic_hook::set_once();
 
+    // Initialize storage
+    let storage = Rc::new(
+        LocalStorage::new(STORAGE_KEY).expect("localStorage not available")
+    );
+
     // Get DOM elements
     let editor: HtmlTextAreaElement = get_element("editor").expect("editor element not found");
     let info_btn: Element = get_element("info-btn").expect("info-btn element not found");
@@ -170,7 +194,7 @@ pub fn init() {
     let modal: HtmlDialogElement = get_element("info-modal").expect("info-modal element not found");
 
     // Load initial content from localStorage
-    let initial_content = load_content();
+    let initial_content = storage.load();
     editor.set_value(&initial_content);
 
     console::log_1(&"ftextarea initialized".into());
@@ -180,12 +204,14 @@ pub fn init() {
     {
         let editor_clone = editor.clone();
         let debouncer_clone = debouncer.clone();
+        let storage_clone = storage.clone();
 
         add_event_listener(&editor, "input", move |_| {
             let editor_ref = editor_clone.clone();
+            let storage_ref = storage_clone.clone();
             debouncer_clone.schedule(DEBOUNCE_MS, move || {
                 let content = editor_ref.value();
-                save_content(&content);
+                storage_ref.save(&content);
             });
         });
     }
@@ -194,12 +220,13 @@ pub fn init() {
     {
         let editor_clone = editor.clone();
         let debouncer_clone = debouncer.clone();
+        let storage_clone = storage.clone();
 
         add_event_listener(&document(), "visibilitychange", move |_| {
             if document().visibility_state() == web_sys::VisibilityState::Hidden {
                 // Cancel pending debounce and save immediately
                 debouncer_clone.cancel();
-                save_content(&editor_clone.value());
+                storage_clone.save(&editor_clone.value());
             }
         });
     }
@@ -221,9 +248,10 @@ pub fn init() {
     // Save when the page is about to unload
     {
         let editor_clone = editor.clone();
+        let storage_clone = storage.clone();
 
         add_event_listener(&window(), "beforeunload", move |_| {
-            save_content(&editor_clone.value());
+            storage_clone.save(&editor_clone.value());
         });
     }
 
@@ -289,5 +317,70 @@ mod console_error_panic_hook {
                 web_sys::console::error_1(&msg.into());
             }));
         });
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::cell::RefCell;
+
+    /// Mock storage for testing purposes.
+    struct MockStorage {
+        content: RefCell<String>,
+    }
+
+    impl MockStorage {
+        fn new() -> Self {
+            Self {
+                content: RefCell::new(String::new()),
+            }
+        }
+
+        fn with_content(initial: &str) -> Self {
+            Self {
+                content: RefCell::new(initial.to_string()),
+            }
+        }
+    }
+
+    impl TextStorage for MockStorage {
+        fn load(&self) -> String {
+            self.content.borrow().clone()
+        }
+
+        fn save(&self, content: &str) {
+            *self.content.borrow_mut() = content.to_string();
+        }
+    }
+
+    #[test]
+    fn test_mock_storage_load_empty() {
+        let storage = MockStorage::new();
+        assert_eq!(storage.load(), "");
+    }
+
+    #[test]
+    fn test_mock_storage_save_and_load() {
+        let storage = MockStorage::new();
+        storage.save("Hello, world!");
+        assert_eq!(storage.load(), "Hello, world!");
+    }
+
+    #[test]
+    fn test_mock_storage_with_initial_content() {
+        let storage = MockStorage::with_content("Initial content");
+        assert_eq!(storage.load(), "Initial content");
+    }
+
+    #[test]
+    fn test_mock_storage_overwrite() {
+        let storage = MockStorage::with_content("Old content");
+        storage.save("New content");
+        assert_eq!(storage.load(), "New content");
     }
 }
